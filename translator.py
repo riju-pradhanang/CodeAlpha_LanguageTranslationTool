@@ -2,11 +2,17 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from googletrans import Translator, LANGUAGES
 
+# Create a reverse mapping: full language names (title-cased) to language codes.
+languages = {value.title(): key for key, value in LANGUAGES.items()}
 
-# Function to translate text
 def translate_text():
-    text = text_input.get("1.0", tk.END).strip()  # Get text from input box
-    dest_language = language_var.get()  # Get selected target language
+    """
+    Retrieve text from the input box, determine the target language code from
+    the selected full language name, translate the text using googletrans,
+    and display the translated text along with its pronunciation in the output box.
+    """
+    text = text_input.get("1.0", tk.END).strip()  # Get text from input area
+    selected_language = language_var.get()  # Get the selected language name
 
     if not text:
         messagebox.showwarning("Warning", "Please enter text to translate.")
@@ -14,43 +20,74 @@ def translate_text():
 
     try:
         translator = Translator()
-        translated = translator.translate(text, dest=dest_language)
-        text_output.delete("1.0", tk.END)  # Clear previous text
-        text_output.insert(tk.END, translated.text)  # Display translated text
+        dest_language_code = languages.get(selected_language)
+        if dest_language_code is None:
+            messagebox.showerror("Error", "Selected language is not supported.")
+            return
+
+        translated = translator.translate(text, dest=dest_language_code)
+        translated_text = translated.text
+        pronunciation = translated.pronunciation
+
+        output = f"{translated_text} ({pronunciation})" if pronunciation else translated_text
+
+        text_output.config(state=tk.NORMAL)  # Enable editing to update text
+        text_output.delete("1.0", tk.END)  # Clear previous output
+        text_output.insert(tk.END, output)  # Insert translated text
+        text_output.config(state=tk.DISABLED)  # Disable editing again
     except Exception as e:
         messagebox.showerror("Error", f"Translation failed: {e}")
 
-
-# Initialize Tkinter window
+# Create the main window
 root = tk.Tk()
-root.title("Language Translator")
-root.geometry("500x400")
+root.title("🌍 Language Translator")
+root.geometry("550x500")
+root.configure(bg="#f0f0f0")  # Light grey background
 root.resizable(False, False)
 
+# Styling variables
+FONT_TITLE = ("Arial", 18, "bold")
+FONT_LABEL = ("Arial", 12, "bold")
+FONT_TEXT = ("Arial", 12)
+BUTTON_STYLE = {"font": ("Arial", 12, "bold"), "bg": "#4CAF50", "fg": "white", "activebackground": "#45a049", "cursor": "hand2"}
+
 # Title label
-tk.Label(root, text="Simple Translator", font=("Arial", 16, "bold")).pack(pady=10)
+title_label = tk.Label(root, text="🌍 Language Translator", font=FONT_TITLE, bg="#f0f0f0")
+title_label.pack(pady=15)
 
-# Input text area
-tk.Label(root, text="Enter text:", font=("Arial", 12)).pack()
-text_input = tk.Text(root, height=5, width=50)
-text_input.pack(pady=5)
+# Input text label and text area
+input_label = tk.Label(root, text="Enter text:", font=FONT_LABEL, bg="#f0f0f0")
+input_label.pack(anchor="w", padx=20)
+text_input = tk.Text(root, height=5, width=60, font=FONT_TEXT, wrap="word", relief="solid", bd=1)
+text_input.pack(pady=5, padx=20)
 
-# Language selection dropdown
-tk.Label(root, text="Select target language:", font=("Arial", 12)).pack()
+# Language selection label and dropdown menu
+language_label = tk.Label(root, text="Select target language:", font=FONT_LABEL, bg="#f0f0f0")
+language_label.pack(anchor="w", padx=20)
 language_var = tk.StringVar()
-language_dropdown = ttk.Combobox(root, textvariable=language_var, values=list(LANGUAGES.keys()), state="readonly")
-language_dropdown.pack(pady=5)
-language_dropdown.set("es")  # Default to Spanish
+language_dropdown = ttk.Combobox(root, textvariable=language_var, values=list(languages.keys()), state="readonly", font=FONT_TEXT)
+language_dropdown.pack(pady=5, padx=20)
+language_dropdown.set("Spanish")  # Default language
 
 # Translate button
-translate_button = tk.Button(root, text="Translate", font=("Arial", 12, "bold"), command=translate_text, bg="#4CAF50",
-                             fg="white")
-translate_button.pack(pady=10)
+translate_button = tk.Button(root, text="Translate", command=translate_text, **BUTTON_STYLE)
+translate_button.pack(pady=15)
 
-# Output text area
-tk.Label(root, text="Translated text:", font=("Arial", 12)).pack()
-text_output = tk.Text(root, height=5, width=50)
-text_output.pack(pady=5)
+# Output text label
+output_label = tk.Label(root, text="Translated text:", font=FONT_LABEL, bg="#f0f0f0")
+output_label.pack(anchor="w", padx=20)
 
-# Run the GUI
+# Output text area with scrollbar
+output_frame = tk.Frame(root)
+output_frame.pack(pady=5, padx=20, fill="both", expand=True)
+
+text_output = tk.Text(output_frame, height=5, width=60, font=FONT_TEXT, wrap="word", relief="solid", bd=1, state=tk.DISABLED)
+text_output.pack(side="left", fill="both", expand=True)
+
+scrollbar = tk.Scrollbar(output_frame, command=text_output.yview)
+scrollbar.pack(side="right", fill="y")
+
+text_output.config(yscrollcommand=scrollbar.set)
+
+# Run the GUI event loop
 root.mainloop()
