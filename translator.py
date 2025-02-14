@@ -5,14 +5,10 @@ from googletrans import Translator, LANGUAGES
 # Create a reverse mapping: full language names (title-cased) to language codes.
 languages = {value.title(): key for key, value in LANGUAGES.items()}
 
+
 def translate_text():
-    """
-    Retrieve text from the input box, determine the target language code from
-    the selected full language name, translate the text using googletrans,
-    and display the translated text along with its pronunciation in the output box.
-    """
-    text = text_input.get("1.0", tk.END).strip()  # Get text from input area
-    selected_language = language_var.get()  # Get the selected language name
+    text = text_input.get("1.0", tk.END).strip()
+    selected_language = language_var.get()
 
     if not text:
         messagebox.showwarning("Warning", "Please enter text to translate.")
@@ -31,62 +27,70 @@ def translate_text():
 
         output = f"{translated_text} ({pronunciation})" if pronunciation else translated_text
 
-        text_output.config(state=tk.NORMAL)  # Enable editing to update text
-        text_output.delete("1.0", tk.END)  # Clear previous output
-        text_output.insert(tk.END, output)  # Insert translated text
-        text_output.config(state=tk.DISABLED)  # Disable editing again
+        text_output.config(state=tk.NORMAL)
+        text_output.delete("1.0", tk.END)
+        text_output.insert(tk.END, output)
+        text_output.config(state=tk.DISABLED)
     except Exception as e:
         messagebox.showerror("Error", f"Translation failed: {e}")
+
 
 # Create the main window
 root = tk.Tk()
 root.title("🌍 Language Translator")
-root.geometry("550x500")
-root.configure(bg="#f0f0f0")  # Light grey background
-root.resizable(False, False)
+root.geometry("600x500")
+root.configure(bg="#e3f2fd")  # Light blue background
 
 # Styling variables
-FONT_TITLE = ("Arial", 18, "bold")
+FONT_TITLE = ("Arial", 20, "bold")
 FONT_LABEL = ("Arial", 12, "bold")
 FONT_TEXT = ("Arial", 12)
-BUTTON_STYLE = {"font": ("Arial", 12, "bold"), "bg": "#4CAF50", "fg": "white", "activebackground": "#45a049", "cursor": "hand2"}
+BUTTON_STYLE = {"font": ("Arial", 12, "bold"), "background": "#2196F3", "fg": "white"}
 
 # Title label
-title_label = tk.Label(root, text="🌍 Language Translator", font=FONT_TITLE, bg="#f0f0f0")
-title_label.pack(pady=15)
+title_label = tk.Label(root, text="🌍 Language Translator", font=FONT_TITLE, bg="#e3f2fd", fg="#0d47a1")
+title_label.pack(pady=10)
 
-# Input text label and text area
-input_label = tk.Label(root, text="Enter text:", font=FONT_LABEL, bg="#f0f0f0")
-input_label.pack(anchor="w", padx=20)
-text_input = tk.Text(root, height=5, width=60, font=FONT_TEXT, wrap="word", relief="solid", bd=1)
-text_input.pack(pady=5, padx=20)
+# Input frame
+input_frame = tk.Frame(root, bg="#e3f2fd")
+input_frame.pack(pady=10, padx=20, fill="x")
 
-# Language selection label and dropdown menu
-language_label = tk.Label(root, text="Select target language:", font=FONT_LABEL, bg="#f0f0f0")
-language_label.pack(anchor="w", padx=20)
+input_label = tk.Label(input_frame, text="Enter text:", font=FONT_LABEL, bg="#e3f2fd")
+input_label.pack(anchor="w")
+
+text_input = tk.Text(input_frame, height=5, width=60, font=FONT_TEXT, wrap="word", relief="solid", bd=2)
+text_input.pack()
+
+# Language selection frame
+lang_frame = tk.Frame(root, bg="#e3f2fd")
+lang_frame.pack(pady=5, padx=20, fill="x")
+
+language_label = tk.Label(lang_frame, text="Select target language:", font=FONT_LABEL, bg="#e3f2fd")
+language_label.pack(anchor="w")
+
 language_var = tk.StringVar()
-language_dropdown = ttk.Combobox(root, textvariable=language_var, values=list(languages.keys()), state="readonly", font=FONT_TEXT)
-language_dropdown.pack(pady=5, padx=20)
-language_dropdown.set("Spanish")  # Default language
+language_dropdown = ttk.Combobox(lang_frame, textvariable=language_var, values=list(languages.keys()), state="readonly",
+                                 font=FONT_TEXT)
+language_dropdown.pack(fill="x")
+language_dropdown.set("Select Language")
 
 # Translate button
-translate_button = tk.Button(root, text="Translate", command=translate_text, **BUTTON_STYLE)
-translate_button.pack(pady=15)
+translate_button = tk.Button(root, text="Translate", command=translate_text, **BUTTON_STYLE, padx=10, pady=5)
+translate_button.pack(pady=10)
 
-# Output text label
-output_label = tk.Label(root, text="Translated text:", font=FONT_LABEL, bg="#f0f0f0")
-output_label.pack(anchor="w", padx=20)
+# Output frame
+output_frame = tk.Frame(root, bg="#e3f2fd")
+output_frame.pack(pady=10, padx=20, fill="both", expand=True)
 
-# Output text area with scrollbar
-output_frame = tk.Frame(root)
-output_frame.pack(pady=5, padx=20, fill="both", expand=True)
+output_label = tk.Label(output_frame, text="Translated text:", font=FONT_LABEL, bg="#e3f2fd")
+output_label.pack(anchor="w")
 
-text_output = tk.Text(output_frame, height=5, width=60, font=FONT_TEXT, wrap="word", relief="solid", bd=1, state=tk.DISABLED)
+text_output = tk.Text(output_frame, height=5, width=60, font=FONT_TEXT, wrap="word", relief="solid", bd=2,
+                      state=tk.DISABLED)
 text_output.pack(side="left", fill="both", expand=True)
 
 scrollbar = tk.Scrollbar(output_frame, command=text_output.yview)
 scrollbar.pack(side="right", fill="y")
-
 text_output.config(yscrollcommand=scrollbar.set)
 
 # Run the GUI event loop
